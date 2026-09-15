@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PIXEL MIRROR TV COMPATIBILITY TEST</title>
+  <link rel="stylesheet" href="tv-test.css">
+</head>
+<body>
+  <main class="page">
+    <h1>PIXEL MIRROR TV<br>COMPATIBILITY TEST</h1>
+    <p class="intro">Results stay in this browser. No report uploads, external signaling, or camera and microphone access.</p>
+    <div class="actions">
+      <button id="runButton" type="button">RUN WEBRTC SELF TEST</button>
+      <button id="copyButton" type="button">COPY RESULTS</button>
+    </div>
+    <p id="runState" class="state" aria-live="polite">Ready. The self-test only creates local peer connections.</p>
+    <section class="summary" aria-labelledby="summaryTitle">
+      <h2 id="summaryTitle">COMPACT RESULT</h2>
+      <pre id="compactResult">JS=? | WS=? | RTC=? | RTC_SELF=? | DC=? | MSE=? | H264_MP4=? | H264_MSE=? | FULLSCREEN=? | UA=UNKNOWN</pre>
+      <p id="jsStatus" class="state">UNKNOWN - JavaScript has not run. If this remains visible, the script did not execute.</p>
+      <p id="recommendation" class="recommendation">LIKELY BEST TRANSPORT: Further testing required</p>
+    </section>
+    <section>
+      <h2>WEBRTC SELF-TEST</h2>
+      <div id="rtcSteps" class="steps"></div>
+    </section>
+    <section>
+      <h2>BROWSER AND DISPLAY</h2>
+      <pre id="environment" class="details"></pre>
+    </section>
+    <section>
+      <h2>API PROBES</h2>
+      <pre id="apiProbes" class="details"></pre>
+    </section>
+    <section>
+      <h2>VIDEO AND MSE</h2>
+      <pre id="mediaProbes" class="details"></pre>
+    </section>
+    <section>
+      <h2>WEBRTC RECEIVE CAPABILITIES</h2>
+      <pre id="rtcCapabilities" class="details"></pre>
+    </section>
+    <section>
+      <h2>ERROR LOG</h2>
+      <pre id="errorLog" class="details">No errors recorded.</pre>
+    </section>
+  </main>
+  <script src="tv-test.js"></script>
+  <script src="tv-rtc.js"></script>
+</body>
+</html>

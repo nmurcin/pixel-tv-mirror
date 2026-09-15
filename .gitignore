@@ -1,0 +1,14 @@
+# Node deps (signaling server) — Render installs these from package.json
+server/node_modules/
+node_modules/
+
+# Secrets / local env (e.g. a TURN credential file you don't want committed)
+.env
+*.env
+server/.env
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+*.log

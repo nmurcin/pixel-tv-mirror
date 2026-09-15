@@ -1,0 +1,17 @@
+{
+  "name": "watch-together-signaling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tiny WebSocket signaling relay for the watch-together P2P screen-share app. Brokers the WebRTC handshake only; never touches media.",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

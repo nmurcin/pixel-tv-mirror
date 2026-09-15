@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>watch-together</title>
+    <meta name="description" content="Private 2-person screen sharing + webcam + chat." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235b9dff'/%3E%3Cpath d='M9 11h14v10H9z' fill='%23fff'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <!-- =====================================================================
+         LOBBY — shown until the peer connects. Name + device prep + invite link.
+         ===================================================================== -->
+    <section id="lobby" class="lobby" aria-label="Lobby">
+      <div class="lobby-card">
+        <h1 class="brand">watch&#8209;together</h1>
+        <p class="lobby-sub">Private screen sharing for two.</p>
+
+        <label class="field">
+          <span>Your name</span>
+          <input id="nameInput" type="text" maxlength="32" placeholder="e.g. Nate" autocomplete="off" />
+        </label>
+
+        <div class="field">
+          <span>Invite link <small>(send this to the one person you're watching with)</small></span>
+          <div class="invite-row">
+            <input id="inviteLink" type="text" readonly />
+            <button id="copyInviteBtn" class="btn" type="button">Copy</button>
+          </div>
+        </div>
+
+        <button id="joinBtn" class="btn btn-primary btn-lg" type="button">Enter room</button>
+
+        <p id="lobbyStatus" class="lobby-status" role="status" aria-live="polite"></p>
+        <p class="lobby-hint">
+          Nothing turns on by default — you'll be asked before your camera or mic is used.
+          Works on desktop Chrome, Edge, and Brave.
+        </p>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         APP — the live room. Hidden until the user enters from the lobby.
+         ===================================================================== -->
+    <main id="app" class="app hidden" aria-label="Room">
+      <!-- The STAGE: shared screen OR video-call webcams OR the share prompt.
+           Fullscreen targets THIS container so PiPs stay overlaid on top. -->
+      <div id="stage" class="stage">
+        <!-- Main screen video (shows whichever peer is sharing; or your own
+             local share so you watch on-site with cameras on top). -->
+        <video id="screenVideo" class="screen-video hidden" autoplay playsinline></video>
+
+        <!-- Video-call mode: both webcams big & side-by-side when no screen is up. -->
+        <div id="callMode" class="call-mode hidden">
+          <div class="call-tile"><video id="callVideoSelf" autoplay playsinline muted class="mirrored"></video><span class="call-name" id="callNameSelf">You</span></div>
+          <div class="call-tile"><video id="callVideoPeer" autoplay playsinline class="hidden-until-stream"></video><span class="call-name" id="callNamePeer">Peer</span></div>
+        </div>
+
+        <!-- Resting state: centered share prompt (no screen, no webcams). -->
+        <div id="sharePrompt" class="share-prompt">
+          <button id="shareCenterBtn" class="share-cta" type="button">
+            <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-6v2h2v2H8v-2h2v-2H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v8h14V7H5Z"/></svg>
+            <span>Click to share content</span>
+          </button>
+          <p class="share-prompt-hint">…or turn on your camera or mic from the bar below to start a video call.</p>
+        </div>
+
+        <!-- PiP webcam overlays are injected here by pip.js (self + peer). -->
+
+        <!-- Fullscreen corner chat overlay (light text, no background, fades). -->
+        <div id="chatOverlay" class="chat-overlay" aria-hidden="true"></div>
+
+        <!-- Fullscreen chat INPUT: a small transparent box bottom-left so you can
+             type without leaving fullscreen. Fades with the idle timer, but stays
+             put whenever it's focused (see .overlay-chat-form:focus-within). -->
+        <form id="overlayChatForm" class="overlay-chat-form">
+          <input id="overlayChatInput" type="text" class="overlay-chat-input"
+                 placeholder="Message…  (Enter)" autocomplete="off" maxlength="2000"
+                 aria-label="Chat message (fullscreen)" />
+        </form>
+
+        <!-- Big transient toast (e.g. "Alex is already sharing", warnings). -->
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+        <!-- Connection status banner (waiting / connecting / failed). -->
+        <div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div>
+
+        <!-- QOL: floating emoji reactions rise through here (purely decorative). -->
+        <div id="reactionLayer" class="reaction-layer" aria-hidden="true"></div>
+
+        <!-- QOL: synced countdown — big 3·2·1·GO number (the chime is the real
+             signal; this is the bonus visual for whoever's looking at the app). -->
+        <div id="countdownOverlay" class="countdown-overlay hidden" aria-hidden="true">
+          <span id="countdownNumber" class="countdown-number"></span>
+        </div>
+
+        <!-- QOL: countdown invite prompt (peer asked to count down together). -->
+        <div id="countdownInvite" class="countdown-invite hidden" role="dialog" aria-label="Countdown invite">
+          <p id="countdownInviteText" class="countdown-invite-text"></p>
+          <div class="countdown-invite-actions">
+            <button id="countdownAccept" class="btn btn-primary btn-sm" type="button">Ready!</button>
+            <button id="countdownDecline" class="btn btn-ghost btn-sm" type="button">Not yet</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT PANEL (windowed side panel; toggled with the Chat button). -->
+      <aside id="chatPanel" class="chat-panel" aria-label="Chat">
+        <header class="chat-header">
+          <span>Chat</span>
+          <button id="chatClearBtn" class="btn btn-ghost btn-sm" type="button" title="Clear chat history">Clear</button>
+        </header>
+        <div id="chatList" class="chat-list" aria-live="polite"></div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" placeholder="Message…  (Enter to send)" autocomplete="off" maxlength="2000" />
+          <button class="btn btn-primary btn-sm" type="submit">Send</button>
+        </form>
+      </aside>
+
+      <!-- CONTROL BAR (auto-hides with the cursor after idle). -->
+      <div id="controlBar" class="control-bar">
+        <div class="control-left">
+          <span id="statusDot" class="status-dot" title="Connection quality"></span>
+          <span id="roleLabel" class="role-label"></span>
+        </div>
+
+        <div class="control-center">
+          <button id="shareBtn" class="ctrl" type="button" aria-pressed="false" title="Share screen / content">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-6v2h2v2H8v-2h2v-2H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v8h14V7H5Z"/></svg>
+            <span class="ctrl-label">Share</span>
+          </button>
+          <button id="camBtn" class="ctrl" type="button" aria-pressed="false" title="Turn camera on/off">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 6h11a1 1 0 0 1 1 1v3l4-2.5v9L16 14v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z"/></svg>
+            <span class="ctrl-label">Camera</span>
+          </button>
+          <button id="micBtn" class="ctrl" type="button" aria-pressed="false" title="Turn microphone on/off">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Zm-7 9h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-2.08A7 7 0 0 1 5 12Z"/></svg>
+            <span class="ctrl-label">Mic</span>
+          </button>
+          <button id="shareAudioBtn" class="ctrl hidden" type="button" aria-pressed="true" title="Mute/unmute shared audio">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 9v6h4l5 5V4L9 9H5Zm11.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Z"/></svg>
+            <span class="ctrl-label">Audio</span>
+          </button>
+          <button id="hideSelfBtn" class="ctrl hidden" type="button" aria-pressed="false" title="Hide/show your own camera tile">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5c5 0 9 4.5 9 7s-4 7-9 7-9-4.5-9-7 4-7 9-7Zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/></svg>
+            <span class="ctrl-label">Hide me</span>
+          </button>
+          <button id="countdownBtn" class="ctrl" type="button" title="Count down 3·2·1 together (synced chime to hit play at the same time)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
+            <span class="ctrl-label">Countdown</span>
+          </button>
+          <!-- QOL: emoji reaction buttons are injected here by ui.js. -->
+          <div id="reactionBar" class="reaction-bar" role="group" aria-label="Send a reaction"></div>
+        </div>
+
+        <div class="control-right">
+          <button id="chatBtn" class="ctrl" type="button" aria-pressed="true" title="Show/hide chat">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1Z"/></svg>
+            <span class="ctrl-label">Chat</span>
+          </button>
+          <button id="settingsBtn" class="ctrl" type="button" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 4a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 3 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1c.6.5 1.3.9 2 1.2L10 22h4l.5-2.6c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z"/></svg>
+            <span class="ctrl-label">Settings</span>
+          </button>
+          <button id="fullscreenBtn" class="ctrl" type="button" title="Fullscreen (F)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 0h2v6h-6v-2h4v-4Z"/></svg>
+            <span class="ctrl-label">Full</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           Modals + stats overlay live INSIDE #app so they remain painted when
+           #app is the fullscreen element (fullscreening #stage hid them).
+           ===================================================================== -->
+
+    <!-- =====================================================================
+         SETTINGS MODAL
+         ===================================================================== -->
+    <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Settings">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h2>Settings</h2>
+          <button id="settingsCloseBtn" class="btn btn-ghost" type="button" aria-label="Close">&times;</button>
+        </header>
+        <div class="modal-body">
+          <fieldset>
+            <legend>Room</legend>
+            <label class="field">
+              <span>Your invite link</span>
+              <div class="invite-row">
+                <input id="settingsRoomLink" type="text" readonly />
+                <button id="settingsCopyBtn" class="btn btn-sm" type="button">Copy</button>
+              </div>
+            </label>
+            <button id="regenRoomBtn" class="btn btn-sm btn-danger" type="button">Regenerate link</button>
+            <small class="muted">Regenerating kills the old link — you'll need to re-share the new one.</small>
+          </fieldset>
+
+          <fieldset>
+            <legend>Identity</legend>
+            <label class="field"><span>Display name</span><input id="settingsName" type="text" maxlength="32" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Devices</legend>
+            <label class="field"><span>Camera</span><select id="cameraSelect"></select></label>
+            <label class="field"><span>Microphone</span><select id="micSelect"></select></label>
+            <label class="checkbox"><input id="echoCancelToggle" type="checkbox" /> Echo cancellation &amp; noise suppression (recommended for talking)</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Video</legend>
+            <label class="field"><span>Quality cap</span>
+              <select id="qualitySelect">
+                <option value="1080p">1080p (best)</option>
+                <option value="720p">720p</option>
+                <option value="480p">480p (weak connection)</option>
+              </select>
+            </label>
+            <label class="checkbox"><input id="mirrorToggle" type="checkbox" /> Mirror my own self-view</label>
+            <label class="checkbox"><input id="statsToggle" type="checkbox" /> Show detailed connection stats overlay</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Chat overlay (fullscreen)</legend>
+            <label class="field"><span>Fade after <output id="fadeOut"></output> s</span>
+              <input id="fadeRange" type="range" min="2" max="30" step="1" />
+            </label>
+            <label class="field"><span>Permanently pin last <output id="pinOut"></output> messages</span>
+              <input id="pinRange" type="range" min="0" max="10" step="1" />
+            </label>
+            <label class="field"><span>Chat text size <output id="textSizeOut"></output> px</span>
+              <input id="textSizeRange" type="range" min="11" max="28" step="1" />
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Appearance &amp; notifications</legend>
+            <label class="field"><span>Accent color</span><input id="accentColor" type="color" /></label>
+            <label class="checkbox"><input id="peerSoundToggle" type="checkbox" /> Play a sound when your peer joins or leaves</label>
+            <label class="field"><span>Auto-hide controls after <output id="idleOut"></output> s</span>
+              <input id="idleRange" type="range" min="1" max="10" step="1" />
+            </label>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         SHARE MODE PICKER — tiny modal shown when clicking Share (motion/detail).
+         ===================================================================== -->
+    <div id="shareModeModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Share mode">
+      <div class="modal-card modal-sm">
+        <header class="modal-header"><h2>What are you sharing?</h2></header>
+        <div class="modal-body share-mode-body">
+          <button id="shareModeMotion" class="share-mode-opt" type="button">
+            <strong>Video / movie</strong><span>Smooth motion (prioritize frame rate)</span>
+          </button>
+          <button id="shareModeDetail" class="share-mode-opt" type="button">
+            <strong>Desktop / code / slides</strong><span>Sharp text (prioritize resolution)</span>
+          </button>
+          <button id="shareModeCancel" class="btn btn-ghost" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed stats overlay (opt-in) -->
+    <pre id="statsOverlay" class="stats-overlay hidden" aria-hidden="true"></pre>
+    </main>
+
+    <script type="module" src="js/ui.js"></script>
+  </body>
+</html>

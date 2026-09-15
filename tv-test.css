@@ -1,0 +1,21 @@
+html { background: #05070b; color: #fff; font-family: Arial, Helvetica, sans-serif; }
+main, section { display: block; }
+body { margin: 0; background: #05070b; color: #fff; font-size: 22px; line-height: 1.4; }
+.page { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+h1 { color: #65e6ff; font-size: 42px; line-height: 1.05; margin: 0 0 20px; letter-spacing: 1px; }
+h2 { color: #ffe66d; font-size: 27px; margin: 0 0 10px; }
+.intro, .state, .recommendation { margin: 12px 0 20px; }
+.actions { margin: 18px 0; }
+button { background: #1769ff; border: 4px solid #fff; border-radius: 6px; color: #fff; cursor: pointer; font-size: 25px; font-weight: bold; margin: 0 14px 14px 0; min-height: 66px; padding: 12px 22px; }
+button:focus { outline: 6px solid #ffe66d; outline-offset: 5px; }
+button:disabled { background: #525867; color: #d5d5d5; cursor: wait; }
+section { border-top: 3px solid #41506b; margin-top: 27px; padding-top: 19px; }
+.summary { background: #111a2b; border: 4px solid #65e6ff; padding: 18px; }
+pre { font-family: "Courier New", monospace; font-size: 18px; line-height: 1.45; margin: 0; overflow-wrap: anywhere; word-wrap: break-word; white-space: pre-wrap; }
+#compactResult { color: #65e6ff; font-size: 21px; font-weight: bold; }
+.steps { display: block; }
+.step { border: 2px solid #4d5970; margin: 8px 0; padding: 9px 12px; }
+.status-PASS { color: #81f58b; } .status-FAIL { color: #ff8989; } .status-UNKNOWN { color: #ffe66d; }
+.step b { display: inline-block; min-width: 145px; }
+.details { color: #e8edf7; }
+@media (max-width: 700px) { body { font-size: 19px; } h1 { font-size: 34px; } button { display: block; font-size: 21px; width: 100%; } pre { font-size: 15px; } }
