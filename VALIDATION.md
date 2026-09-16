@@ -20,3 +20,17 @@ All copied application files matched the source snapshot SHA-256 hashes. The ori
 These desktop tests do not establish Samsung browser compatibility or remote H.264 video reception. The next required evidence is the actual TV diagnostic result.
 
 See tests/README.md for reproducible test commands.
+
+## Stage 2 validation
+
+Validated with installed Chrome 152 in two isolated browser contexts on the same Windows computer, with the receiver loaded through the computer LAN IPv4 URL over HTTP (`isSecureContext=false`). This exercises a real encoded video stream, but is not yet a test of a second physical device.
+
+- H.264-only mode: RTP stats confirmed H264; decoded video reached 1280 x 720. A 120-second stability run advanced beyond 3,300 frames without a 10-second stall.
+- Automatic mode: RTP stats confirmed VP8; a separate 120-second run also advanced beyond 3,300 frames and reached 1280 x 720. Resolution adaptation during startup is allowed and reported rather than hidden.
+- Sender and receiver peer connections both closed after Stop. No external browser requests were observed.
+- Acorn ES5 parsing passed for both Stage 2 runtime scripts.
+- Video-engine unit tests cover strict H.264 filtering with matching RTX, rejection when H.264 is absent, legacy callbacks/statistics, queued ICE, cleanup, missing counters, decoded-frame stalls/recovery, and clock-only stalls/recovery.
+- Server tests cover malformed JSON without crashes, pairing limits, role-token authorization, exact origin/host checks, polling cursors, queue limits, session expiry, and rejection of arbitrary file paths.
+- Original application and Stage 1 runtime files remain unchanged.
+
+The actual Samsung still needs to join this local video test. Desktop results cannot establish Tizen H.264 decoding, home-network connectivity between the two devices, or practical TV playback delay. The firewall helper was syntax-reviewed; its administrator action is a separate host setup step.

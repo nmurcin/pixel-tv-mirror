@@ -1,0 +1,33 @@
+html { background: #05070b; color: #fff; font-family: Arial, Helvetica, sans-serif; }
+main, section { display: block; }
+body { margin: 0; background: #05070b; color: #fff; font-size: 22px; line-height: 1.4; }
+.page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 70px; }
+h1 { color: #65e6ff; font-size: 45px; line-height: 1.04; letter-spacing: 1px; margin: 0 0 20px; }
+h2 { color: #ffe66d; font-size: 28px; margin: 0 0 12px; }
+a { color: #82eeff; }
+section { border-top: 3px solid #41506b; margin-top: 28px; padding-top: 20px; }
+.notice { background: #2b1d0a; border: 4px solid #ffe66d; padding: 20px; }
+.intro, .state, .explain { margin: 12px 0 20px; }
+button, select, input { font: inherit; }
+button { background: #1769ff; border: 4px solid #fff; border-radius: 6px; color: #fff; cursor: pointer; font-size: 25px; font-weight: bold; margin: 14px 14px 14px 0; min-height: 66px; padding: 12px 22px; }
+button:focus, select:focus, input:focus, a:focus { outline: 6px solid #ffe66d; outline-offset: 4px; }
+button:disabled { background: #525867; color: #d5d5d5; cursor: wait; }
+select, input { background: #111a2b; border: 4px solid #fff; border-radius: 4px; color: #fff; display: block; font-size: 25px; margin: 8px 0; min-height: 58px; padding: 8px 12px; }
+input { font-family: "Courier New", monospace; font-size: 32px; letter-spacing: 5px; max-width: 310px; }
+.pairing { background: #111a2b; border: 4px solid #65e6ff; margin: 16px 0; padding: 18px; }
+.pairing p { margin: 4px 0 10px; }
+.code { color: #65e6ff; display: block; font-family: "Courier New", monospace; font-size: 52px; font-weight: bold; letter-spacing: 7px; margin-bottom: 18px; }
+canvas, video { background: #000; border: 4px solid #fff; box-sizing: border-box; display: block; height: auto; margin: 18px 0; max-height: 72vh; max-width: 100%; width: 100%; }
+video { min-height: 260px; object-fit: contain; }
+pre { font-family: "Courier New", monospace; font-size: 18px; line-height: 1.45; margin: 0; overflow-wrap: anywhere; word-wrap: break-word; white-space: pre-wrap; }
+.compact { color: #65e6ff; font-size: 21px; font-weight: bold; }
+.details { color: #e8edf7; }
+.actions { margin-top: 8px; }
+[hidden] { display: none !important; }
+@media (max-width: 700px) {
+  body { font-size: 19px; }
+  h1 { font-size: 34px; }
+  button { display: block; font-size: 21px; width: 100%; }
+  pre { font-size: 15px; }
+  .code { font-size: 38px; letter-spacing: 4px; }
+}

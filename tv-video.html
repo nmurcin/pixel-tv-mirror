@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PIXEL MIRROR LIVE VIDEO TEST</title>
+  <link rel="stylesheet" href="video-test.css">
+</head>
+<body>
+  <main class="page">
+    <h1>PIXEL MIRROR<br>LIVE VIDEO TEST</h1>
+    <p class="intro">Direct local-network video test with pairing through your computer. No camera, microphone, media permission, cloud service, or external signaling is used.</p>
+    <p><a href="tv-test.html">OPEN STAGE 1 COMPATIBILITY TEST</a></p>
+
+    <section id="staticPanel" class="notice" hidden>
+      <h2>LOCAL SERVER REQUIRED</h2>
+      <p>Run Start-Video-Test.cmd on your computer; TV uses local address shown there.</p>
+    </section>
+
+    <section id="senderPanel" hidden>
+      <h2>COMPUTER / SENDER</h2>
+      <label for="mode">CODEC MODE</label>
+      <select id="mode">
+        <option value="h264" selected>H.264 only</option>
+        <option value="auto">Automatic</option>
+      </select>
+      <button id="createButton" type="button">CREATE TEST</button>
+      <div id="pairingPanel" class="pairing" hidden>
+        <p>PAIRING CODE</p>
+        <output id="pairCode" class="code">--------</output>
+        <p>OPEN ONE OF THESE LOCAL ADDRESSES ON THE TV:</p>
+        <pre id="receiverUrls" class="details"></pre>
+      </div>
+      <canvas id="patternCanvas" width="1280" height="720">Animated test frame unavailable.</canvas>
+      <p class="explain">Compare the changing frame timer here with the TV image for a visual delay check.</p>
+    </section>
+
+    <section id="receiverPanel" hidden>
+      <h2>TV / RECEIVER</h2>
+      <label for="roomCode">8-DIGIT PAIRING CODE</label>
+      <input id="roomCode" type="text" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="off" aria-describedby="codeHelp">
+      <p id="codeHelp" class="explain">Enter the code displayed on the computer.</p>
+      <button id="joinButton" type="button">JOIN TEST</button>
+      <video id="remoteVideo" muted autoplay playsinline></video>
+      <div class="actions">
+        <button id="playButton" type="button">PLAY VIDEO</button>
+        <button id="fullscreenButton" type="button">FULLSCREEN</button>
+      </div>
+    </section>
+
+    <section id="sharedStopPanel" hidden>
+      <button id="stopButton" type="button">STOP</button>
+    </section>
+
+    <section>
+      <h2>STATUS</h2>
+      <p id="jsStatus" class="state">UNKNOWN - JavaScript has not run.</p>
+      <p id="status" class="state" aria-live="polite">Waiting.</p>
+      <pre id="compactSummary" class="compact">ROLE=? | STATE=? | ICE=? | CODEC=? | PLAYBACK=?</pre>
+    </section>
+
+    <section>
+      <h2>LOCAL EVIDENCE</h2>
+      <pre id="metrics" class="details">No engine report yet.</pre>
+    </section>
+
+    <section id="remoteMetricsPanel" hidden>
+      <h2>TV RECEIVER EVIDENCE</h2>
+      <pre id="remoteMetrics" class="details">No receiver report yet.</pre>
+    </section>
+
+    <section>
+      <h2>HOW TO READ THIS TEST</h2>
+      <p>Peer connection alone does not confirm video. Confirm changing video on the TV and check decoded frames, resolution, frame rate, and received bytes.</p>
+      <p>WebRTC RTT measures network round-trip time. It is not end-to-end video delay. Compare the displayed frame timer on the computer and TV for a practical visual check.</p>
+    </section>
+
+    <section>
+      <h2>ERROR LOG</h2>
+      <pre id="errorLog" class="details">No errors recorded.</pre>
+    </section>
+  </main>
+  <script src="video-rtc.js"></script>
+  <script src="video-ui.js"></script>
+</body>
+</html>

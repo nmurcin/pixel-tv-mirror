@@ -27,3 +27,32 @@ Run the RTC mock tests with Node alone:
 ```powershell
 node tests\rtc-self-test.cjs
 ```
+
+## Stage 2 local-video validation
+
+The isolated signaling-server and RTC unit tests use Node built-ins only:
+
+```powershell
+node tests\video-server-test.cjs
+node tests\video-rtc-unit.cjs
+```
+
+The real-browser test needs the same isolated `NODE_PATH` setup and an installed Chrome or Edge executable. It defaults to a short run; set 120 seconds for a sustained local check:
+
+```powershell
+$env:NODE_PATH = (Resolve-Path ..\.pixel-tv-tools\node_modules)
+$env:CHROME_PATH = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+$env:VIDEO_TEST_SECONDS = '120'
+node tests\video-browser.cjs
+```
+
+Set `TV_TEST_HOST` to the test computer LAN IPv4 address to load the receiver over ordinary HTTP rather than trusted localhost. Both browser roles and the temporary server still run on this computer:
+
+```powershell
+$env:TV_TEST_HOST = '192.168.1.77'
+node tests\video-browser.cjs
+```
+
+## Optional LAN firewall helper
+
+`Enable-Video-Test-LAN.ps1` is only for a temporary isolated video-test server that Windows Firewall blocks on the local network. It requires an elevated PowerShell session and a running `video-server.cjs` PID. The helper creates one inbound TCP rule limited to the supplied local IPv4 address, port, Node executable, and `LocalSubnet`; it does not change firewall profiles or existing rules. It watches that exact process for up to four hours, then removes the exact rule it created when the server exits, its PID is replaced, or the limit is reached. Launch the helper explicitly with administrator approval, supplying the verified server PID and local address; do not edit unrelated firewall rules.
