@@ -85,6 +85,7 @@ async function runPair(browser, base, mode, receiverBase) {
     }
     const reports = await receiver.evaluate(() => window.__videoReports);
     console.log(mode + ' receiver report:', JSON.stringify(reports[reports.length - 1]));
+    assert.match(await sender.locator('#compactSummary').textContent(), /PLAYBACK=frames advancing/, 'Sender summary must retain receiver playback evidence between telemetry reports');
     assert.ok(lastFrames > initial.frames + 30, 'Decoded/displayed frames must actually increase');
     if (mode === 'h264') {
       assert.ok(reports.some(report => /h264/i.test(String(report.codec)) && /RTP stats/i.test(String(report.codecSource))), 'H264 must be confirmed by RTP stats');

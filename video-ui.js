@@ -108,7 +108,7 @@
   function report(snapshot) {
     if (!snapshot || typeof snapshot !== 'object') { addError('Engine report', 'Invalid snapshot'); return; }
     if (snapshot.remote) { latestRemote = snapshot.remote; text('remoteMetrics', snapshotText(latestRemote)); show('remoteMetricsPanel', true); updateCompact(latestRemote); if (role === 'sender') { updateEvidenceStatus(latestRemote); } }
-    if (!snapshot.remote || typeof snapshot.state !== 'undefined' || typeof snapshot.ice !== 'undefined') { latestLocal = snapshot; text('metrics', snapshotText(latestLocal)); if (!snapshot.remote) { updateCompact(latestLocal); if (role === 'receiver') { updateEvidenceStatus(latestLocal); } } }
+    if (!snapshot.remote || typeof snapshot.state !== 'undefined' || typeof snapshot.ice !== 'undefined') { latestLocal = snapshot; text('metrics', snapshotText(latestLocal)); if (!snapshot.remote) { updateCompact(role === 'sender' && latestRemote ? latestRemote : latestLocal); if (role === 'receiver') { updateEvidenceStatus(latestLocal); } } }
   }
   function engineError(step, error) {
     if (typeof error === 'undefined') { error = step; step = 'runtime'; }
